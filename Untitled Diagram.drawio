@@ -1,30 +1,9 @@
-<mxfile host="app.diagrams.net" modified="2024-04-12T00:24:27.739Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36" etag="9f7Y_-DV2BtsXvD9Ec4R" version="24.2.3" type="github">
-  <diagram name="Page-1" id="Ohyw1s6STUV4uEkvtngu">
-    <mxGraphModel dx="2113" dy="2024" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+<mxfile host="app.diagrams.net" modified="2024-04-12T11:40:24.404Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36" version="24.2.3" etag="rhMSVBY_YVgfij7JoAtS" type="github">
+  <diagram name="Page-1" id="04J2KyGnHb5bWEJSFS4D">
+    <mxGraphModel>
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="3wHEoMu4OZ92vNOkeQWk-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3wHEoMu4OZ92vNOkeQWk-1" target="3wHEoMu4OZ92vNOkeQWk-2">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="3wHEoMu4OZ92vNOkeQWk-1" value="Questions" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="-880" y="-810" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="3wHEoMu4OZ92vNOkeQWk-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3wHEoMu4OZ92vNOkeQWk-2" target="3wHEoMu4OZ92vNOkeQWk-4">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="3wHEoMu4OZ92vNOkeQWk-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=oval;endFill=0;" edge="1" parent="1" source="3wHEoMu4OZ92vNOkeQWk-2" target="3wHEoMu4OZ92vNOkeQWk-8">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="3wHEoMu4OZ92vNOkeQWk-2" value="Text-to-SQL Query Engine" style="ellipse;whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
-          <mxGeometry x="-660" y="-820" width="80" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="3wHEoMu4OZ92vNOkeQWk-4" value="Answer" style="whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
-          <mxGeometry x="-520" y="-810" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="3wHEoMu4OZ92vNOkeQWk-8" value="SQL-DB" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.database;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="-650" y="-630" width="60" height="60" as="geometry" />
-        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
