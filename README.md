@@ -10,7 +10,6 @@ This project is a web application designed to convert natural language text into
 - **Reinforcement Learning**: Implements deep reinforcement learning to refine and improve the model based on user interactions and feedback.
 
 ## Prerequisites
-- Python 3.8+
 - Flask for the web framework
 - OpenAI API for accessing the GPT model
 - AWS SDK (Boto3) for cloud interactions
