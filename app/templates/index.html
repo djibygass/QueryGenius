@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Query Generator</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>SQL Query Generator</h1>
+    <form method="post">
+        <div>
+            <label for="db_schema">Enter Database Schema (optional):</label>
+            <input type="text" id="db_schema" name="db_schema" class="prompt-input" value="{{ db_schema }}">
+        </div>
+        <div>
+            <label for="sql_dialect">Choose SQL Dialect:</label>
+            <select id="sql_dialect" name="sql_dialect" class="prompt-input">
+                <option value="Standard SQL" {% if sql_dialect == "Standard SQL" %}selected{% endif %}>Standard SQL</option>
+                <option value="PostgreSQL" {% if sql_dialect == "PostgreSQL" %}selected{% endif %}>PostgreSQL</option>
+                <option value="MySQL" {% if sql_dialect == "MySQL" %}selected{% endif %}>MySQL</option>
+                <option value="BigQuery" {% if sql_dialect == "BigQuery" %}selected{% endif %}>BigQuery</option>
+                <option value="Snowflake" {% if sql_dialect == "Snowflake" %}selected{% endif %}>Snowflake</option>
+            </select>
+        </div>
+        <div>
+            <label for="prompt">Enter your prompt:</label>
+            <input type="text" id="prompt" name="prompt" class="prompt-input" required value="{{ user_prompt }}">
+        </div>
+        <button type="submit">Generate SQL Query</button>
+    </form>
+    {% if sql_query %}
+        <h2>Generated SQL Query:</h2>
+        <pre>{{ sql_query }}</pre>
+    {% endif %}
+</body>
+</html>
