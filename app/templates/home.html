@@ -18,6 +18,13 @@
         <p style="color: red;">{{ error }}</p>
     {% endif %}
     <form method="post" action="{{ url_for('generate_sql') }}">
+        <label for="sql_dialect">Choose SQL Dialect:</label>
+        <select id="sql_dialect" name="sql_dialect" class="prompt-input">
+            <option value="Standard SQL" {% if sql_dialect == "Standard SQL" %}selected{% endif %}>Standard SQL</option>
+            <option value="PostgreSQL" {% if sql_dialect == "PostgreSQL" %}selected{% endif %}>PostgreSQL</option>
+            <option value="SQLite" {% if sql_dialect == "SQLite" %}selected{% endif %}>SQLite</option>
+            <option value="BigQuery" {% if sql_dialect == "BigQuery" %}selected{% endif %}>BigQuery</option>
+        </select>
         <input type="text" name="sql_prompt" placeholder="Enter your SQL prompt" required class="prompt-input" value="{{ user_prompt }}">
         <button type="submit" class="prompt-input">Generate SQL Query</button>
     </form>
