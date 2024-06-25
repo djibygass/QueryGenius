@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session
 import mysql.connector
 from mysql.connector import Error
 from dotenv import load_dotenv
@@ -7,6 +7,7 @@ from openai import OpenAI
 
 app = Flask(__name__)
 load_dotenv()
+app.secret_key = 'your_secret_key_here'  # Required for session management
 
 client = OpenAI()
 
@@ -43,6 +44,7 @@ def index():
                     cursor.execute(f"DESCRIBE {request.form['table_name']};")
                     schema_details = cursor.fetchall()
                     table_schema = '\n'.join([f"{row[0]}: {row[1]}" for row in schema_details])
+                    session['db_schema'] = request.form['table_name']  # Store the table name as the schema name
             except Error as e:
                 table_schema = f"Failed to fetch schema: {str(e)}"
             finally:
