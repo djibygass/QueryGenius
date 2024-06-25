@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Query Generator</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <button onclick="location.href='{{ url_for('home') }}'">Home</button>
+            <button onclick="location.href='{{ url_for('connect') }}'">Connect to Database</button>
+        </nav>
+    </header>
+    <h1>SQL Query Generator</h1>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('generate_sql') }}">
+        <input type="text" name="sql_prompt" placeholder="Enter your SQL prompt" required class="prompt-input" value="{{ user_prompt }}">
+        <button type="submit" class="prompt-input">Generate SQL Query</button>
+    </form>
+    {% if sql_query %}
+        <h2>SQL Prompt:</h2>
+        <pre>{{ user_prompt }}</pre>
+        <h2>Generated SQL Query:</h2>
+        <pre>{{ sql_query }}</pre>
+    {% endif %}
+</body>
+</html>
