@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueryGenius - Home</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="py-3 custom-header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="logo d-flex align-items-center">
+                <span class="ml-2">🧠 QUERYGENIUS</span>
+            </div>
+        </div>
+    </header>
+    <main class="d-flex justify-content-center align-items-center vh-100">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="text-white">Conversion de texte en SQL</h1>
+                    <h2 class="text-white">Support de multiple base de données</h2>
+                    <a href="{{ url_for('connect') }}" class="btn btn-primary btn-lg mt-4">Commencer maintenant</a>
+                </div>
+                <div class="col-md-6">
+                    {% if error %}
+                        <p style="color: red;">{{ error }}</p>
+                    {% endif %}
+                    <form method="post" action="{{ url_for('generate_sql') }}" class="form-container">
+                        <label for="sql_dialect" class="label-black">Choose SQL Dialect:</label>
+                        <select id="sql_dialect" name="sql_dialect" class="form-control">
+                            <option value="Standard SQL">Standard SQL</option>
+                            <option value="BigQuery">BigQuery</option>
+                        </select>
+                        <input type="text" name="sql_prompt" placeholder="Enter your SQL prompt" required class="form-control mt-3">
+                        <button type="submit" class="btn btn-primary mt-3">Generate SQL Query</button>
+                    </form>
+                    {% if sql_query %}
+                        <h2 class="text-white">Generated SQL Query:</h2>
+                        <pre class="text-white">{{ sql_query }}</pre>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

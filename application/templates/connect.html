@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Schema Fetcher</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="custom-header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="logo">
+                <button class="btn btn-link text-white" onclick="navigateToHome()">Home</button>
+                <button class="btn btn-link text-white" onclick="navigateToConnect()">Connect to Database</button>
+            </div>
+        </div>
+    </header>
+    <main class="py-4">
+        <div class="container">
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} mt-2">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <h1 class="text-white mb-3">Connect to Database and Fetch Schema</h1>
+            {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
+            <form method="post" enctype="multipart/form-data" class="form-horizontal">
+                {% if not schemas %}
+                    <div class="form-group">
+                        <label for="sql_dialect" class="text-white control-label">Choose SQL Dialect:</label>
+                        <select id="sql_dialect" name="sql_dialect" class="form-control" onchange="toggleBigQueryFields()">
+                            <option value="Standard SQL" {% if request.form.sql_dialect == "Standard SQL" %}selected{% endif %}>Standard SQL</option>
+                            <option value="BigQuery" {% if request.form.sql_dialect == "BigQuery" %}selected{% endif %}>BigQuery</option>
+                        </select>
+                    </div>
+                    <div id="non-bigquery-fields" class="mb-3" {% if request.form.sql_dialect == "BigQuery" %}style="display:none;"{% endif %}>
+                        <input type="text" name="host" placeholder="Host" class="form-control" value="{{ session.db_details.host if 'db_details' in session }}">
+                        <input type="text" name="database" placeholder="Database" class="form-control mt-2" value="{{ session.db_details.database if 'db_details' in session }}">
+                        <input type="text" name="user" placeholder="User" class="form-control mt-2" value="{{ session.db_details.user if 'db_details' in session }}">
+                        <input type="password" name="password" placeholder="Password" class="form-control mt-2">
+                    </div>
+                    <div id="bigquery-fields" class="mb-3" {% if request.form.sql_dialect != "BigQuery" %}style="display:none;"{% endif %}>
+                        <input type="text" name="project" placeholder="BigQuery Project" class="form-control">
+                        <input type="text" name="dataset" placeholder="BigQuery Dataset" class="form-control mt-2">
+                        <input type="file" name="credentials" class="form-control-file mt-2" onchange="displayFileName()">
+                        <span id="file-name" class="text-white"></span>
+                    </div>
+                    <button type="submit" name="fetch_tables" class="btn btn-primary">Connect and Fetch Tables</button>
+                    {% if tables %}
+                        <div class="form-group mt-4">
+                            <label for="table_select" class="control-label text-white">Select Tables:</label>
+                            <select name="table_select" id="table_select" class="form-control" multiple>
+                                {% for table in tables %}
+                                    <option value="{{ table.TABLE_NAME }}">{{ table.TABLE_NAME }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" name="fetch_schema" class="btn btn-secondary mt-2">Fetch Table Schema</button>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </form>
+            {% if schemas %}
+                <div class="mt-4">
+                    <h2 class="text-white">Table Schemas:</h2>
+                    <ul class="text-white">
+                        {% for table_name, columns in schemas.items() %}
+                            <li><strong>{{ table_name }}</strong>
+                                <ul>
+                                    {% for column in columns %}
+                                        <li>{{ column.COLUMN_NAME }}: {{ column.DATA_TYPE }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="mt-4">
+                    <form method="post" class="form-horizontal">
+                        <div class="form-group">
+                            <label for="sql_prompt" class="control-label text-white">Enter SQL Prompt:</label>
+                            <input type="text" id="sql_prompt" name="sql_prompt" placeholder="Enter your SQL prompt" class="form-control" required>
+                        </div>
+                        <button type="submit" name="generate_sql" class="btn btn-primary">Generate SQL Query</button>
+                    </form>
+                </div>
+            {% endif %}
+            {% if sql_query %}
+                <div class="mt-4">
+                    <h2 class="text-white">Generated SQL Query:</h2>
+                    <pre class="text-white">{{ sql_query }}</pre>
+                </div>
+            {% endif %}
+            {% if query_results %}
+                <h2 class="text-white">Query Results:</h2>
+                <table class="table table-dark"> <!-- Added table-dark class for white text -->
+                    <thead>
+                        <tr>
+                            {% for key in query_results[0].keys() %}
+                                <th>{{ key }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in query_results %}
+                            <tr>
+                                {% for value in row.values() %}
+                                    <td>{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="mt-4">
+                    <h2 class="text-white">Was the generated SQL query helpful?</h2>
+                    <form method="post" action="{{ url_for('submit_feedback') }}">
+                        <input type="hidden" name="sql_prompt" value="{{ request.form.sql_prompt }}">
+                        <input type="hidden" name="sql_generated" value="{{ sql_query }}">
+                        <button type="submit" name="feedback" value="1" class="btn btn-success">Yes</button>
+                        <button type="submit" name="feedback" value="0" class="btn btn-danger">No</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function toggleBigQueryFields() {
+            const sqlDialect = document.getElementById('sql_dialect').value;
+            if (sqlDialect === 'BigQuery') {
+                document.getElementById('non-bigquery-fields').style.display = 'none';
+                document.getElementById('bigquery-fields').style.display = 'block';
+            } else {
+                document.getElementById('non-bigquery-fields').style.display = 'block';
+                document.getElementById('bigquery-fields').style.display = 'none';
+            }
+        }
+
+        function displayFileName() {
+            const fileInput = document.querySelector('input[name="credentials"]');
+            const fileName = fileInput.files[0].name;
+            document.getElementById('file-name').textContent = `Selected file: ${fileName}`;
+        }
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        function navigateToHome() {
+            window.location.href = "{{ url_for('home') }}";
+        }
+
+        function navigateToConnect() {
+            window.location.href = "{{ url_for('connect') }}";
+        }
+
+        // Attach navigation functions to header buttons
+        document.querySelectorAll('.logo button').forEach(button => {
+            button.addEventListener('click', function(event) {
+                const action = event.target.getAttribute('onclick');
+                if (action) {
+                    eval(action);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
