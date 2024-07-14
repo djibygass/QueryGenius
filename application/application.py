@@ -14,7 +14,6 @@ api_key = os.getenv('OPENAI_API_KEY')
 if not api_key:
     raise RuntimeError("OPENAI_API_KEY is not set in the environment")
 
-
 client = OpenAI(api_key=api_key)
 
 def get_db_connection():
@@ -39,6 +38,15 @@ def get_bigquery_client(credentials_path):
 def home():
     return render_template('home.html')
 
+def qualify_table_names(sql_query, dataset_name):
+    """Qualifies table names with the dataset name in the given SQL query."""
+    tables = session.get('tables', [])
+    for table in tables:
+        table_name = table['TABLE_NAME']
+        qualified_name = f"{dataset_name}.{table_name}"
+        sql_query = sql_query.replace(table_name, qualified_name)
+    return sql_query
+
 @application.route('/generate-sql', methods=['POST'])
 def generate_sql():
     error = None
@@ -46,6 +54,7 @@ def generate_sql():
     user_prompt = request.form['sql_prompt']
     sql_dialect = request.form['sql_dialect']
     schemas = session.get('schemas', {})
+    dataset_name = session.get('bigquery_dataset', '')
 
     full_prompt = f"Using the schemas {schemas}, generate a SQL query for: {user_prompt}"
     try:
@@ -54,10 +63,30 @@ def generate_sql():
             messages=[{"role": "user", "content": full_prompt}]
         )
         sql_query = completion.choices[0].message.content
+
+        if sql_dialect == 'BigQuery':
+            sql_query = qualify_table_names(sql_query, dataset_name)
+            try:
+                credentials_path = session['credentials_path']
+                client_bigquery = get_bigquery_client(credentials_path)
+                query_job = client_bigquery.query(sql_query)
+                query_results = [dict(row) for row in query_job.result()]
+            except Exception as err:
+                error = f"Error executing BigQuery SQL: {err}"
+        elif sql_dialect == 'Standard SQL':
+            try:
+                conn = get_db_connection()
+                cur = conn.cursor(dictionary=True)
+                cur.execute(sql_query)
+                query_results = cur.fetchall()
+                cur.close()
+                conn.close()
+            except mysql.connector.Error as err:
+                error = f"Error executing SQL: {err}"
     except Exception as e:
         error = f"Error generating SQL: {e}"
-    
-    return render_template('home.html', sql_query=sql_query, error=error, user_prompt=user_prompt, sql_dialect=sql_dialect)
+
+    return render_template('connect.html', tables=session.get('tables', []), schemas=schemas, sql_query=sql_query, query_results=query_results, error=error)
 
 @application.route('/connect', methods=['GET', 'POST'])
 def connect():
@@ -94,6 +123,7 @@ def connect():
                         dataset_ref = client_bigquery.dataset(session['bigquery_dataset'])
                         tables = list(client_bigquery.list_tables(dataset_ref))
                         tables = [{'TABLE_NAME': table.table_id} for table in tables]
+                        session['tables'] = tables  # Store tables in session
                     except Exception as err:
                         error = f"BigQuery connection failed: {err}"
             elif sql_dialect == 'Standard SQL':
@@ -108,6 +138,7 @@ def connect():
                     cur = conn.cursor()
                     cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = %s", (session['db_details']['database'],))
                     tables = [{'TABLE_NAME': table[0].decode() if isinstance(table[0], bytearray) else table[0]} for table in cur.fetchall()]
+                    session['tables'] = tables  # Store tables in session
                     cur.close()
                     conn.close()
                 except mysql.connector.Error as err:
@@ -159,6 +190,7 @@ def connect():
             user_prompt = request.form['sql_prompt']
             sql_dialect = session.get('sql_dialect')
             schemas = session.get('schemas', {})
+            dataset_name = session.get('bigquery_dataset', '')
 
             full_prompt = f"Using the schemas {schemas}, generate a SQL query for: {user_prompt}"
             try:
@@ -169,6 +201,7 @@ def connect():
                 sql_query = completion.choices[0].message.content
 
                 if sql_dialect == 'BigQuery':
+                    sql_query = qualify_table_names(sql_query, dataset_name)
                     try:
                         credentials_path = session['credentials_path']
                         client_bigquery = get_bigquery_client(credentials_path)
