@@ -51,10 +51,12 @@ def qualify_table_names(sql_query, dataset_name):
 def generate_sql():
     error = None
     sql_query = None
+    query_results = []
     user_prompt = request.form['sql_prompt']
     sql_dialect = request.form['sql_dialect']
     schemas = session.get('schemas', {})
     dataset_name = session.get('bigquery_dataset', '')
+    is_connect_page = request.form.get('is_connect_page', 'false') == 'true'
 
     full_prompt = f"Using the schemas {schemas}, generate a SQL query for: {user_prompt}"
     try:
@@ -64,29 +66,33 @@ def generate_sql():
         )
         sql_query = completion.choices[0].message.content
 
-        if sql_dialect == 'BigQuery':
-            sql_query = qualify_table_names(sql_query, dataset_name)
-            try:
-                credentials_path = session['credentials_path']
-                client_bigquery = get_bigquery_client(credentials_path)
-                query_job = client_bigquery.query(sql_query)
-                query_results = [dict(row) for row in query_job.result()]
-            except Exception as err:
-                error = f"Error executing BigQuery SQL: {err}"
-        elif sql_dialect == 'Standard SQL':
-            try:
-                conn = get_db_connection()
-                cur = conn.cursor(dictionary=True)
-                cur.execute(sql_query)
-                query_results = cur.fetchall()
-                cur.close()
-                conn.close()
-            except mysql.connector.Error as err:
-                error = f"Error executing SQL: {err}"
+        if is_connect_page:
+            if sql_dialect == 'BigQuery':
+                sql_query = qualify_table_names(sql_query, dataset_name)
+                try:
+                    credentials_path = session['credentials_path']
+                    client_bigquery = get_bigquery_client(credentials_path)
+                    query_job = client_bigquery.query(sql_query)
+                    query_results = [dict(row) for row in query_job.result()]
+                except Exception as err:
+                    error = f"Error executing BigQuery SQL: {err}"
+            elif sql_dialect == 'Standard SQL':
+                try:
+                    conn = get_db_connection()
+                    cur = conn.cursor(dictionary=True)
+                    cur.execute(sql_query)
+                    query_results = cur.fetchall()
+                    cur.close()
+                    conn.close()
+                except mysql.connector.Error as err:
+                    error = f"Error executing SQL: {err}"
     except Exception as e:
         error = f"Error generating SQL: {e}"
 
-    return render_template('connect.html', tables=session.get('tables', []), schemas=schemas, sql_query=sql_query, query_results=query_results, error=error)
+    if is_connect_page:
+        return render_template('connect.html', tables=session.get('tables', []), schemas=schemas, sql_query=sql_query, query_results=query_results, error=error)
+    else:
+        return render_template('home.html', sql_query=sql_query, error=error, user_prompt=user_prompt, sql_dialect=sql_dialect)
 
 @application.route('/connect', methods=['GET', 'POST'])
 def connect():
